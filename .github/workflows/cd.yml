@@ -49,5 +49,5 @@ jobs:
             run: | 
               echo "Test production API..."
 
-              curl --fail --show--error --silent \
+              curl --fail --show-error --silent \
               "$API_URL/api/health"
