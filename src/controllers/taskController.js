@@ -1,12 +1,14 @@
 const taskStore = require("../data/taskStore");
 
+const allowedPriorities = ["low", "medium", "high"];
+
 function getAllTasks(req, res) {
-  return res.status(200).json({
+  const tasks = taskStore.getTasks();
+
+  res.status(200).json({
     status: "success",
-    results: taskStore.getAllTasks().length,
-    data: {
-      tasks: taskStore.getAllTasks(),
-    },
+    results: tasks.length,
+    data: { tasks },
   });
 }
 
@@ -20,16 +22,16 @@ function getTask(req, res) {
     });
   }
 
-  return res.status(200).json({
+  res.status(200).json({
     status: "success",
     data: { task },
   });
 }
 
 function createTask(req, res) {
-  const { title, description } = req.body;
+  const { title, description, priority } = req.body;
 
-  if (typeof title !== "string" || title.trim().length === 0) {
+  if (typeof title !== "string" || !title.trim()) {
     return res.status(400).json({
       status: "fail",
       message: "Title is required and must be a non-empty string",
@@ -46,30 +48,41 @@ function createTask(req, res) {
     });
   }
 
+  if (
+    priority !== undefined &&
+    !allowedPriorities.includes(priority)
+  ) {
+    return res.status(400).json({
+      status: "fail",
+      message: "Priority must be low, medium, or high",
+    });
+  }
+
   const task = taskStore.createTask({
     title: title.trim(),
-    description: description?.trim() ?? "",
+    description,
+    priority,
   });
 
-  return res.status(201).json({
+  res.status(201).json({
     status: "success",
     data: { task },
   });
 }
 
 function updateTask(req, res) {
-  const { title, description, completed } = req.body;
+  const { title, description, completed, priority } = req.body;
 
   if (Object.keys(req.body).length === 0) {
     return res.status(400).json({
       status: "fail",
-      message: "Provide at least one field to update",
+      message: "Please provide at least one field to update",
     });
   }
 
   if (
     title !== undefined &&
-    (typeof title !== "string" || title.trim().length === 0)
+    (typeof title !== "string" || !title.trim())
   ) {
     return res.status(400).json({
       status: "fail",
@@ -87,20 +100,32 @@ function updateTask(req, res) {
     });
   }
 
-  if (completed !== undefined && typeof completed !== "boolean") {
+  if (
+    completed !== undefined &&
+    typeof completed !== "boolean"
+  ) {
     return res.status(400).json({
       status: "fail",
       message: "Completed must be a boolean",
     });
   }
 
-  const updates = {
-    ...(title !== undefined ? { title: title.trim() } : {}),
-    ...(description !== undefined
-      ? { description: description.trim() }
-      : {}),
-    ...(completed !== undefined ? { completed } : {}),
-  };
+  if (
+    priority !== undefined &&
+    !allowedPriorities.includes(priority)
+  ) {
+    return res.status(400).json({
+      status: "fail",
+      message: "Priority must be low, medium, or high",
+    });
+  }
+
+  const updates = {};
+
+  if (title !== undefined) updates.title = title.trim();
+  if (description !== undefined) updates.description = description;
+  if (completed !== undefined) updates.completed = completed;
+  if (priority !== undefined) updates.priority = priority;
 
   const task = taskStore.updateTask(req.params.id, updates);
 
@@ -111,23 +136,23 @@ function updateTask(req, res) {
     });
   }
 
-  return res.status(200).json({
+  res.status(200).json({
     status: "success",
     data: { task },
   });
 }
 
 function deleteTask(req, res) {
-  const deleted = taskStore.deleteTask(req.params.id);
+  const task = taskStore.deleteTask(req.params.id);
 
-  if (!deleted) {
+  if (!task) {
     return res.status(404).json({
       status: "fail",
       message: "Task not found",
     });
   }
 
-  return res.status(204).send();
+  res.status(204).send();
 }
 
 module.exports = {
