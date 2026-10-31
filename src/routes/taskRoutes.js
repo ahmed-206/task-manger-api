@@ -4,7 +4,7 @@ const taskController = require("../controllers/taskController");
 const router = express.Router();
 
 router
-  .route("/task")
+  .route("/")
   .get(taskController.getAllTasks)
   .post(taskController.createTask);
 
