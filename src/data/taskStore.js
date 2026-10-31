@@ -2,7 +2,7 @@ const { randomUUID } = require("node:crypto");
 
 let tasks = [];
 
-function getAllTasks() {
+function getTasks() {
   return tasks;
 }
 
@@ -10,33 +10,26 @@ function getTaskById(id) {
   return tasks.find((task) => task.id === id);
 }
 
-function createTask({ title, description = "" }) {
+function createTask(data) {
   const task = {
     id: randomUUID(),
-    title,
-    description,
+    title: data.title,
+    description: data.description || "",
     completed: false,
-    createdAt: new Date().toISOString(),
+    priority: data.priority || "medium",
   };
 
   tasks.push(task);
+
   return task;
 }
 
 function updateTask(id, updates) {
   const task = getTaskById(id);
 
-  if (!task) {
-    return null;
-  }
+  if (!task) return null;
 
-  if (updates.title !== undefined) task.title = updates.title;
-  if (updates.description !== undefined) {
-    task.description = updates.description;
-  }
-  if (updates.completed !== undefined) {
-    task.completed = updates.completed;
-  }
+  Object.assign(task, updates);
 
   return task;
 }
@@ -44,21 +37,19 @@ function updateTask(id, updates) {
 function deleteTask(id) {
   const taskIndex = tasks.findIndex((task) => task.id === id);
 
-  if (taskIndex === -1) {
-    return false;
-  }
+  if (taskIndex === -1) return null;
 
-  tasks.splice(taskIndex, 1);
-  return true;
+  const [deletedTask] = tasks.splice(taskIndex, 1);
+
+  return deletedTask;
 }
 
-// Used by tests to start each test with clean in-memory data.
 function clearTasks() {
   tasks = [];
 }
 
 module.exports = {
-  getAllTasks,
+  getTasks,
   getTaskById,
   createTask,
   updateTask,
