@@ -8,6 +8,10 @@ on:
     branches: 
         - main
 
+concurrency:
+  group: production-deployment
+  cancel-in-progress: false
+
 jobs:
     vercel_deploy:
         name: Vercel deploy
