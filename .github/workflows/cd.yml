@@ -49,5 +49,25 @@ jobs:
             run: | 
               echo "Test production API..."
 
-              curl --fail --show-error --silent \
-              "$API_URL/api/health"
+              response=$(curl --fail --show-error --silent \
+                --retry 3 \
+                --retry-delay 2 \
+                --retry-connrefused \
+                "$API_URL/api/health")
+              
+              echo "API Response: $response"
+              RESPONSE="$response" node -e 
+                const data = JSON.parse(process.env.RESPONSE);
+
+                if (data.status !== "ok") {
+                  console.error("Health check failed!");
+                  process.exit(1);
+                }
+
+                if (data.message !== "Task Manager API is running") {
+                  console.error("Unexpected API response!");
+                  process.exit(1);
+                }
+
+              console.log("Smoke test passed!");
+              
