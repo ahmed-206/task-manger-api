@@ -96,7 +96,7 @@ function updateTask(req, res) {
   ) {
     return res.status(400).json({
       status: "fail",
-      message: "Description must be a string",
+      message: "Description must be aaa string",
     });
   }
 
