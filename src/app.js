@@ -8,7 +8,7 @@ app.use(express.json());
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     status: "ok",
-    message: "Task Manager API is running - version 2",
+    message: "Task Manager API is running",
   });
 });
 
