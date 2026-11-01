@@ -21,6 +21,7 @@ jobs:
             VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
             VERCEL_PROJECT_ID: ${{secrets.VERCEL_PROJECT_ID}}
             API_URL: https://task-manager-2msvsnmjs-ahmed-206s-projects.vercel.app
+            VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         steps:
           - name: Checkout repository
             uses: actions/checkout@v4
@@ -53,21 +54,26 @@ jobs:
                 --retry 3 \
                 --retry-delay 2 \
                 --retry-connrefused \
+                -H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET" \
                 "$API_URL/api/health")
               
               echo "API Response: $response"
-              RESPONSE="$response" node -e 
-                const data = JSON.parse(process.env.RESPONSE);
 
-                if (data.status !== "ok") {
-                  console.error("Health check failed!");
-                  process.exit(1);
-                }
+              export RESPONSE="$response"
 
-                if (data.message !== "Task Manager API is running") {
-                  console.error("Unexpected API response!");
-                  process.exit(1);
-                }
+              node <<'NODE'
+              const data = JSON.parse(process.env.RESPONSE);
+
+              if (data.status !== "ok") {
+                console.error("Health check failed!");
+                process.exit(1);
+              }
+
+              if (data.message !== "Task Manager API is running") {
+                console.error("Unexpected API response!");
+                process.exit(1);
+              }
 
               console.log("Smoke test passed!");
+              NODE
               
